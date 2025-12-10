@@ -1,0 +1,51 @@
+name: CI TalentoTech
+on: 
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+jobs:
+  build:
+    test:
+      runs-on: ubuntu-latest
+      env:
+        PYTHON_VERSION: '3.12'
+        PIP_CACHE: ~/.cache/pip
+      
+      steps:
+      # Checkout repository
+      - name: Checkout codigo
+        uses: actions/checkout@v4
+
+      # Cache de PIP
+      - name: Cache dependencia
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PIP_CACHE }}
+          key: ${{ runner.os }}-pip-${{ env.hashFiles('**/requirements.txt') }}
+
+      # Setup Python
+      - name: Instalar Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      # Install dependencies
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      # Run tests
+      - name: Run tests
+        run: python3 run_tests.py # Si tiene INI (pytest)
+
+      # Subir artefactos (reportes + imagenes + Logs)
+      - name: Subir HTML report
+        uses: actions/upload-artifact@v3
+        with:
+          name: html-report
+          path: reports/
+        
+      - name: Subir suits logs
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-logs
